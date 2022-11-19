@@ -444,6 +444,7 @@
 
 	function startHand(x, y, evt, isTouchEvent) {
 		if (!isTouchEvent) {
+			if(evt.which == 2) evt.preventDefault();
 			selected = {
 				x: document.documentElement.scrollLeft + evt.clientX,
 				y: document.documentElement.scrollTop + evt.clientY,
@@ -451,7 +452,10 @@
 		}
 	}
 	function moveHand(x, y, evt, isTouchEvent) {
-		if (selected && !isTouchEvent) { //Let the browser handle touch to scroll
+		if (evt.which == 2 && !isTouchEvent) { //Let the browser handle touch to scroll
+			evt.preventDefault();
+			evt.stopPropagation();
+    		evt.stopImmediatePropagation();
 			window.scrollTo(selected.x - evt.clientX, selected.y - evt.clientY);
 		}
 	}

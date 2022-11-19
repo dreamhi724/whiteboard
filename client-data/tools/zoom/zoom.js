@@ -86,7 +86,7 @@
                 (evt.deltaMode === WheelEvent.DOM_DELTA_PAGE) ? 1000 :
                     1;
         var deltaX = evt.deltaX * multiplier, deltaY = evt.deltaY * multiplier;
-        if (!evt.ctrlKey) {
+        if (evt.ctrlKey) {
             // zoom
             var scale = Tools.getScale();
             var x = evt.pageX / scale;

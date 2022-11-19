@@ -32,6 +32,7 @@
 	// seems to work, either because writing tends to happen in bursts, or
 	// maybe because the messages are sent when the time interval is *greater*
 	// than this?
+	var selected = null;
 	var MIN_PENCIL_INTERVAL_MS = Tools.server_config.MAX_EMIT_COUNT_PERIOD / Tools.server_config.MAX_EMIT_COUNT;
 
 	var AUTO_FINGER_WHITEOUT = Tools.server_config.AUTO_FINGER_WHITEOUT;
@@ -66,45 +67,64 @@
 		}
 	}
 
-	function startLine(x, y, evt) {
+	function startLine(x, y, evt, isTouchEvent) {
+		if(evt.which != 2){
+			//Prevent the press from being interpreted by the browser
+			evt.preventDefault();
 
-		//Prevent the press from being interpreted by the browser
-		evt.preventDefault();
+			if (AUTO_FINGER_WHITEOUT) handleAutoWhiteOut(evt);
 
-		if (AUTO_FINGER_WHITEOUT) handleAutoWhiteOut(evt);
+			curLineId = Tools.generateUID("l"); //"l" for line
 
-		curLineId = Tools.generateUID("l"); //"l" for line
+			Tools.drawAndSend({
+				'type': 'line',
+				'id': curLineId,
+				'color': (pencilTool.secondary.active ? "#ffffff" : Tools.getColor()),
+				'size': Tools.getSize(),
+				'opacity': (pencilTool.secondary.active ? 1 : Tools.getOpacity()),
+			});
 
-		Tools.drawAndSend({
-			'type': 'line',
-			'id': curLineId,
-			'color': (pencilTool.secondary.active ? "#ffffff" : Tools.getColor()),
-			'size': Tools.getSize(),
-			'opacity': (pencilTool.secondary.active ? 1 : Tools.getOpacity()),
-		});
-
-		//Immediatly add a point to the line
-		continueLine(x, y);
+			//Immediatly add a point to the line
+			continueLine(x, y);
+		} else {
+			evt.preventDefault();
+		}
+		if (!isTouchEvent) {
+			if(evt.which == 2) evt.preventDefault();
+			svg.style.cursor = "move"
+			selected = {
+				x: document.documentElement.scrollLeft + evt.clientX,
+				y: document.documentElement.scrollTop + evt.clientY,
+			}
+		}
 	}
 
-	function continueLine(x, y, evt) {
+	function continueLine(x, y, evt, isTouchEvent) {
 		/*Wait 70ms before adding any point to the currently drawing line.
 		This allows the animation to be smother*/
-		if (curLineId !== "" && performance.now() - lastTime > MIN_PENCIL_INTERVAL_MS) {
+		console.log(curLineId);
+		if ( curLineId !== "" && performance.now() - lastTime > MIN_PENCIL_INTERVAL_MS) {
 			Tools.drawAndSend(new PointMessage(x, y));
 			lastTime = performance.now();
 		}
+		if (evt.which == 2 && !isTouchEvent) { //Let the browser handle touch to scroll
+			evt.preventDefault();
+			window.scrollTo(selected.x - evt.clientX, selected.y - evt.clientY);
+		}
 		if (evt) evt.preventDefault();
+		
 	}
 
 	function stopLineAt(x, y) {
 		//Add a last point to the line
-		continueLine(x, y);
 		stopLine();
+		svg.style.cursor = "url('tools/pencil/cursor.svg'), crosshair";
+		continueLine(x, y);
 	}
 
 	function stopLine() {
 		curLineId = "";
+		console.log(curLineId);
 	}
 
 	var renderingLine = {};

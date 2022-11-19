@@ -434,8 +434,8 @@ function updateDocumentTitle() {
 		var scale = Tools.getScale();
 		var x = document.documentElement.scrollLeft / scale,
 			y = document.documentElement.scrollTop / scale;
-
 		clearTimeout(scrollTimeout);
+		resizeCanvas({ x: window.screen.width, y: window.screen.height });
 		scrollTimeout = setTimeout(function updateHistory() {
 			var hash = '#' + (x | 0) + ',' + (y | 0) + ',' + Tools.getScale().toFixed(1);
 			if (Date.now() - lastStateUpdate > 5000 && hash !== window.location.hash) {
@@ -452,7 +452,7 @@ function updateDocumentTitle() {
 		var x = coords[0] | 0;
 		var y = coords[1] | 0;
 		var scale = parseFloat(coords[2]);
-		resizeCanvas({ x: x, y: y });
+		resizeCanvas({ x: window.screen.width, y: window.screen.height });
 		Tools.setScale(scale);
 		window.scrollTo(x * scale, y * scale);
 	}
